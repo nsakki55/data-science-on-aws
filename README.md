@@ -1,5 +1,5 @@
 # Data Science on AWS - O'Reilly Book
-
+init
 ## Get the book on [Amazon.com](https://www.amazon.com/Data-Science-AWS-End-End/dp/1492079391)!
 [![Data Science on AWS](img/book_full_color_sm.png)](https://www.amazon.com/Data-Science-AWS-End-End/dp/1492079391/)
 
