@@ -7,7 +7,6 @@ from datetime import datetime
 from time import gmtime, strftime, sleep
 
 import sys
-import re
 import collections
 import argparse
 import json

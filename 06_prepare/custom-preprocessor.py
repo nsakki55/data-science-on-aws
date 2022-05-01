@@ -1,17 +1,14 @@
 import argparse
-import json
 import os
-import time
 import pickle
-from datetime import datetime
-from logging import getLogger, StreamHandler, INFO
-from typing import Any, Dict
 import sys
+import time
+from datetime import datetime
+from logging import INFO, StreamHandler, getLogger
+from typing import Any, Dict
+
 import numpy as np
 import pandas as pd
-
-from sklearn.feature_extraction import FeatureHasher
-from sklearn.model_selection import train_test_split
 
 logger = getLogger(__name__)
 sh = StreamHandler(sys.stdout)
@@ -53,11 +50,21 @@ def preprocess(df: pd.DataFrame):
     df["hour"] = df["hour"].map(lambda x: datetime.strptime(str(x), "%y%m%d%H"))
     df["day_of_week"] = df["hour"].map(lambda x: x.hour)
 
-    feature_hasher = FeatureHasher(n_features=2**24, input_type="string")
-    hashed_feature = feature_hasher.fit_transform(np.asanyarray(df.astype(str)))
+    hashed_feature = hashing_from_dataframe(df)
 
     return hashed_feature
 
+def hashing(x: str, n_features=2**24)-> int:
+    return hash(x) % n_features
+
+def hashing_from_dataframe(df: pd.DataFrame, n_features=2**24):
+
+    df_hashed = np.zeros((df.shape[0],n_features), dtype=int)
+    for row in range(df.shape[0]):
+        for col in range(df.shape[1]):
+            index = hashing(str(df.iloc[row, col])) + 1
+            df_hashed[row, index] += 1
+    return df_hashed
 
 def create_dataset(df: pd.DataFrame)-> Dict[str, Any]:
     assert TARGET in df.columns
