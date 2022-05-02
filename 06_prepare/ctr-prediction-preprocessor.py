@@ -1,15 +1,14 @@
 import argparse
-import json
 import os
-import time
 import pickle
-from datetime import datetime
-from logging import getLogger, StreamHandler, INFO
-from typing import Any, Dict
 import sys
+import time
+from datetime import datetime
+from logging import INFO, StreamHandler, getLogger
+from typing import Any, Dict
+
 import numpy as np
 import pandas as pd
-
 from sklearn.feature_extraction import FeatureHasher
 from sklearn.model_selection import train_test_split
 
@@ -47,6 +46,7 @@ FEATURE = [
 ]
 TARGET = "click"
 
+
 def preprocess(df: pd.DataFrame):
     assert "hour" in df.columns
 
@@ -59,7 +59,7 @@ def preprocess(df: pd.DataFrame):
     return hashed_feature
 
 
-def create_dataset(df: pd.DataFrame)-> Dict[str, Any]:
+def create_dataset(df: pd.DataFrame) -> Dict[str, Any]:
     assert TARGET in df.columns
 
     y = df[TARGET].values
@@ -67,11 +67,13 @@ def create_dataset(df: pd.DataFrame)-> Dict[str, Any]:
     X = df[FEATURE]
     X_hashed = preprocess(X)
 
-    return {"feature": X_hashed, 'target': y}
+    return {"feature": X_hashed, "target": y}
 
-def save_as_pickle(path: str, data: Dict[str, Any])-> None:
-    with open(path, 'wb') as p:
+
+def save_as_pickle(path: str, data: Dict[str, Any]) -> None:
+    with open(path, "wb") as p:
         pickle.dump(data, p)
+
 
 def list_arg(raw_value):
     """argparse type for a list of strings"""
@@ -120,8 +122,8 @@ if __name__ == "__main__":
 
     # Create local output directories
     try:
-        os.makedirs('/opt/ml/processing/output/train')
-        os.makedirs('/opt/ml/processing/output/validation')
+        os.makedirs("/opt/ml/processing/output/train")
+        os.makedirs("/opt/ml/processing/output/validation")
     except:
         pass
 

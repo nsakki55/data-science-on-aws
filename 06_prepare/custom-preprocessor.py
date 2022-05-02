@@ -1,19 +1,22 @@
 import argparse
 import os
 import pickle
+import random
 import sys
 import time
 from datetime import datetime
 from logging import INFO, StreamHandler, getLogger
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 import numpy as np
 import pandas as pd
+from sagemaker.sklearn.processing import SKLearnProcessor, ScriptProcessor
 
 logger = getLogger(__name__)
 sh = StreamHandler(sys.stdout)
 sh.setLevel(INFO)
 logger.addHandler(sh)
+logger.setLevel(INFO)
 
 FEATURE = [
     "id",
@@ -44,6 +47,7 @@ FEATURE = [
 ]
 TARGET = "click"
 
+
 def preprocess(df: pd.DataFrame):
     assert "hour" in df.columns
 
@@ -54,19 +58,31 @@ def preprocess(df: pd.DataFrame):
 
     return hashed_feature
 
-def hashing(x: str, n_features=2**24)-> int:
+
+def train_test_split(df: pd.DataFrame, train_size: float = 0.8, random_state: int = 42) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    random.seed(random_state)
+    all_idx = np.arange(len(df))
+    train_idx = random.sample(list(all_idx), int(len(df) * train_size))
+    test_idx = list(set(all_idx) - set(train_idx))
+
+    return df.iloc[train_idx], df.iloc[test_idx]
+
+
+def hashing(x: str, n_features=2**19) -> int:
     return hash(x) % n_features
 
-def hashing_from_dataframe(df: pd.DataFrame, n_features=2**24):
 
-    df_hashed = np.zeros((df.shape[0],n_features), dtype=int)
+def hashing_from_dataframe(df: pd.DataFrame, n_features: int = 2**19):
+
+    df_hashed = np.zeros((df.shape[0], n_features), dtype=int)
     for row in range(df.shape[0]):
         for col in range(df.shape[1]):
             index = hashing(str(df.iloc[row, col])) + 1
             df_hashed[row, index] += 1
     return df_hashed
 
-def create_dataset(df: pd.DataFrame)-> Dict[str, Any]:
+
+def create_dataset(df: pd.DataFrame) -> Dict[str, Any]:
     assert TARGET in df.columns
 
     y = df[TARGET].values
@@ -74,11 +90,13 @@ def create_dataset(df: pd.DataFrame)-> Dict[str, Any]:
     X = df[FEATURE]
     X_hashed = preprocess(X)
 
-    return {"feature": X_hashed, 'target': y}
+    return {"feature": X_hashed, "target": y}
 
-def save_as_pickle(path: str, data: Dict[str, Any])-> None:
-    with open(path, 'wb') as p:
+
+def save_as_pickle(path: str, data: Dict[str, Any]) -> None:
+    with open(path, "wb") as p:
         pickle.dump(data, p)
+
 
 def list_arg(raw_value):
     """argparse type for a list of strings"""
@@ -127,8 +145,8 @@ if __name__ == "__main__":
 
     # Create local output directories
     try:
-        os.makedirs('/opt/ml/processing/output/train')
-        os.makedirs('/opt/ml/processing/output/validation')
+        os.makedirs("/opt/ml/processing/output/train")
+        os.makedirs("/opt/ml/processing/output/validation")
     except:
         pass
 
