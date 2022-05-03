@@ -10,7 +10,6 @@ from typing import Any, Dict, Tuple
 
 import numpy as np
 import pandas as pd
-from sagemaker.sklearn.processing import SKLearnProcessor, ScriptProcessor
 
 logger = getLogger(__name__)
 sh = StreamHandler(sys.stdout)
@@ -68,11 +67,11 @@ def train_test_split(df: pd.DataFrame, train_size: float = 0.8, random_state: in
     return df.iloc[train_idx], df.iloc[test_idx]
 
 
-def hashing(x: str, n_features=2**19) -> int:
+def hashing(x: str, n_features=2**16) -> int:
     return hash(x) % n_features
 
 
-def hashing_from_dataframe(df: pd.DataFrame, n_features: int = 2**19):
+def hashing_from_dataframe(df: pd.DataFrame, n_features: int = 2**16):
 
     df_hashed = np.zeros((df.shape[0], n_features), dtype=int)
     for row in range(df.shape[0]):
@@ -134,7 +133,7 @@ if __name__ == "__main__":
     df_train, df_valid = train_test_split(df_train, train_size=args.train_valid_split_percentage, random_state=42)
 
     logger.info(f"train data: {df_train.shape}")
-    logger.info(f"train data: {df_valid.shape}")
+    logger.info(f"valid data: {df_valid.shape}")
 
     current_time_sec = int(round(time.time()))
     df_train["event_time"] = pd.Series([current_time_sec] * len(df_train), dtype="float64")
