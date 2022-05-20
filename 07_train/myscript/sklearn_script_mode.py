@@ -1,7 +1,5 @@
 import argparse
-import json
 import os
-import re
 from datetime import datetime
 
 import joblib
@@ -13,7 +11,6 @@ from sklearn.linear_model import SGDClassifier
 
 feature_columns = [
     "id",
-    "event_time",
     "click",
     "hour",
     "C1",
@@ -75,7 +72,7 @@ def load_dataset(path: str) -> (pd.DataFrame, np.array):
     if len(files) == 0:
         raise ValueError("Invalid # of files in dir: {}".format(path))
 
-    raw_data = [pd.read_csv(file, sep=",", header=None) for file in files]
+    raw_data = [pd.read_csv(file, sep=",") for file in files]
     data = pd.concat(raw_data)
 
     # # labels are in the first column
