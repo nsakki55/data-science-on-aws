@@ -1,9 +1,10 @@
-FROM python:3.8-slim-buster
+FROM python:3.6-slim-buster
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gcc g++
 
-RUN pip3 install pandas numpy joblib scikit-learn
+RUN pip3 install pandas numpy joblib scikit-learn cython
+RUN pip3 install fastFM
 RUN pip3 install sagemaker-training
 
 

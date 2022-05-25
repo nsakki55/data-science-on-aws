@@ -1,42 +1,12 @@
 import argparse
 import os
-from datetime import datetime
 
 import joblib
 import numpy as np
 import pandas as pd
+from my_custom_library import feature_columns, preprocess, target
 from sagemaker_training import environment
-from sklearn.feature_extraction import FeatureHasher
 from sklearn.linear_model import SGDClassifier
-
-feature_columns = [
-    "id",
-    "click",
-    "hour",
-    "C1",
-    "banner_pos",
-    "site_id",
-    "site_domain",
-    "site_category",
-    "app_id",
-    "app_domain",
-    "app_category",
-    "device_id",
-    "device_ip",
-    "device_model",
-    "device_type",
-    "device_conn_type",
-    "C14",
-    "C15",
-    "C16",
-    "C17",
-    "C18",
-    "C19",
-    "C20",
-    "C21",
-]
-
-target = "click"
 
 
 def parse_args():
@@ -55,7 +25,6 @@ def parse_args():
     # data directories
     parser.add_argument("--train", type=str, default=os.environ.get("SM_CHANNEL_TRAIN"))
     parser.add_argument("--validation", type=str, default=os.environ.get("SM_CHANNEL_VALIDATION"))
-    parser.add_argument("--test", type=str, default=os.environ.get("SM_CHANNEL_TEST"))
 
     # model directory: we will use the default set by SageMaker, /opt/ml/model
     parser.add_argument("--model_dir", type=str, default=os.environ.get("SM_MODEL_DIR"))
@@ -82,25 +51,14 @@ def load_dataset(path: str) -> (pd.DataFrame, np.array):
     return X, y
 
 
-def preprocess(df: pd.DataFrame):
-    df["hour"] = df["hour"].map(lambda x: datetime.strptime(str(x), "%y%m%d%H"))
-    df["day_of_week"] = df["hour"].map(lambda x: x.hour)
-
-    feature_hasher = FeatureHasher(n_features=2**24, input_type="string")
-    hashed_feature = feature_hasher.fit_transform(np.asanyarray(df.astype(str)))
-
-    return hashed_feature
-
-
-def start(args):
+def main(args):
     """
-    Train a Random Forest Regressor
+    Train a CTR Prediction
     """
     print("Training mode")
 
     X_train, y_train = load_dataset(args.train)
     X_validation, y_validation = load_dataset(args.validation)
-    X_test, y_test = load_dataset(args.test)
 
     y_train = np.asarray(y_train).ravel()
     X_train_hashed = preprocess(X_train)
@@ -135,4 +93,4 @@ if __name__ == "__main__":
 
     args, _ = parse_args()
 
-    start(args)
+    main(args)
